@@ -114,6 +114,28 @@ const authenticateToken = (request, response, next) => {
   }
 }
 
+let res = dat => {
+  return {username: dat.username, tweet: dat.tweet, dateTime: dat.dateTime}
+}
 
+app.get('/user/tweets/feed/', authenticateToken, (request, response) => {
+  let {username} = request
+  tweetsQuery = `
+  SELECT
+  user.username, tweet.tweet, tweet.date_time AS dateTime
+  FROM
+  follower
+  INNER JOIN tweet
+  ON follower.following_user_id = tweet.user_id
+  INNER JOIN user
+  ON tweet.user_id = user.user_id
+  WHERE
+  user.username =${username}
+  ORDER BY
+  tweet.date_time DESC
+  LIMIT 4;`
+  let det = database.all(tweetsQuery)
+  response.send(dat.map(x => res(x)))
+})
 
 module.exports = app
