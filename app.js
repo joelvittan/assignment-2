@@ -119,21 +119,36 @@ let res = dat => {
 }
 
 app.get('/user/tweets/feed/', authenticateToken, (request, response) => {
-  let {username} = request
-  tweetsQuery = `
-  SELECT
-  user.username, tweet.tweet, tweet.date_time AS dateTime
-  FROM
-  follower
-  INNER JOIN tweet
-  ON follower.following_user_id = tweet.user_id
-  INNER JOIN user
-  ON tweet.user_id = user.user_id
-  WHERE
-  user.username =${username}
-  ORDER BY
-  tweet.date_time DESC
-  LIMIT 4;`
+  const {username} = request
+  const tweetsQuery = `
+SELECT
+user.username, tweet.tweet, tweet.date_time AS dateTime
+FROM
+follower
+INNER JOIN tweet
+ON follower.following_user_id = tweet.user_id
+INNER JOIN user
+ON tweet.user_id = user.user_id
+WHERE
+follower.follower_user_id = ${username}
+ORDER BY
+tweet.date_time DESC
+LIMIT 4;`
+  let det = database.all(tweetsQuery)
+  response.send(dat.map(x => res(x)))
+})
+
+app.get('/user/following/', authenticateToken, (request, response) => {
+  const {username} = request
+  const tweetsQuery = `
+SELECT
+user.name
+FROM
+follower
+INNER JOIN user
+ON follower.following_user_id = user.user_id
+WHERE
+follower.follower_user_id = ${username};`
   let det = database.all(tweetsQuery)
   response.send(dat.map(x => res(x)))
 })
