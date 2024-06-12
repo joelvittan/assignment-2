@@ -118,10 +118,9 @@ let res = dat => {
   return {username: dat.username, tweet: dat.tweet, dateTime: dat.dateTime}
 }
 
-app.get('/user/tweets/feed/', authenticateToken, (request, response) => {
+app.get('/user/tweets/feed/', authenticateToken, async (request, response) => {
   const {username} = request
-  const tweetsQuery = `
-SELECT
+  const tweetsQuery = `SELECT
 user.username, tweet.tweet, tweet.date_time AS dateTime
 FROM
 follower
@@ -130,26 +129,119 @@ ON follower.following_user_id = tweet.user_id
 INNER JOIN user
 ON tweet.user_id = user.user_id
 WHERE
-follower.follower_user_id = ${username}
+follower.follower_user_id = (select user_id from user where username="${username}")
 ORDER BY
 tweet.date_time DESC
 LIMIT 4;`
-  let det = database.all(tweetsQuery)
-  response.send(dat.map(x => res(x)))
+  let det = await database.all(tweetsQuery) //Use await keyword
+
+  response.send(det.map(x => res(x)))
 })
 
-app.get('/user/following/', authenticateToken, (request, response) => {
+app.get('/user/following/', authenticateToken, async (request, response) => {
   const {username} = request
   const tweetsQuery = `
 SELECT
-user.name
+following_user_id
 FROM
 follower
 INNER JOIN user
 ON follower.following_user_id = user.user_id
 WHERE
-follower.follower_user_id = ${username};`
-  let det = database.all(tweetsQuery)
+follower.follower_user_id = (select user_id from user where username="${username}")`
+  let dat = await database.all(tweetsQuery)
+  response.send(dat.map(x => res(x)))
+})
+app.get('/tweets/:tweetId/', authenticateToken, async (request, response) => {
+  const {username} = request
+  const tweetsQuery = `
+SELECT
+following_user_id
+FROM
+follower
+INNER JOIN user
+ON follower.following_user_id = user.user_id
+WHERE
+follower.follower_user_id = (select user_id from user where username="${username}")`
+  let dat = await database.all(tweetsQuery)
+  response.send(dat.map(x => res(x)))
+})
+app.get(
+  '/tweets/:tweetId/likes/',
+  authenticateToken,
+  async (request, response) => {
+    const {username} = request
+    const tweetsQuery = `
+SELECT
+following_user_id
+FROM
+follower
+INNER JOIN user
+ON follower.following_user_id = user.user_id
+WHERE
+follower.follower_user_id = (select user_id from user where username="${username}")`
+    let dat = await database.all(tweetsQuery)
+    response.send(dat.map(x => res(x)))
+  },
+)
+app.get(
+  '/tweets/:tweetId/replies/',
+  authenticateToken,
+  async (request, response) => {
+    const {username} = request
+    const tweetsQuery = `
+SELECT
+following_user_id
+FROM
+follower
+INNER JOIN user
+ON follower.following_user_id = user.user_id
+WHERE
+follower.follower_user_id = (select user_id from user where username="${username}")`
+    let dat = await database.all(tweetsQuery)
+    response.send(dat.map(x => res(x)))
+  },
+)
+app.get('/user/tweets/', authenticateToken, async (request, response) => {
+  const {username} = request
+  const tweetsQuery = `
+SELECT
+following_user_id
+FROM
+follower
+INNER JOIN user
+ON follower.following_user_id = user.user_id
+WHERE
+follower.follower_user_id = (select user_id from user where username="${username}")`
+  let dat = await database.all(tweetsQuery)
+  response.send(dat.map(x => res(x)))
+})
+app.get('/user/tweets/', authenticateToken, async (request, response) => {
+  const {username} = request
+  const tweetsQuery = `
+SELECT
+following_user_id
+FROM
+follower
+INNER JOIN user
+ON follower.following_user_id = user.user_id
+WHERE
+follower.follower_user_id = (select user_id from user where username="${username}")`
+  let dat = await database.all(tweetsQuery)
+  response.send(dat.map(x => res(x)))
+})
+app.get('/tweets/:tweetId/', authenticateToken, async (request, response) => {
+  const {username} = request
+  const tweetsQuery = `
+SELECT
+following_user_id
+FROM
+follower
+INNER JOIN user
+ON follower.following_user_id = user.user_id
+WHERE
+follower.follower_user_id = (select user_id from user where username="${username}")`
+  let dat = await database.all(tweetsQuery)
   response.send(dat.map(x => res(x)))
 })
 
